@@ -3,7 +3,6 @@ const httpProxy = require('http-proxy');
 const basicAuth = require('basic-auth');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
-const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -35,7 +34,7 @@ function auth(req, res, next) {
 // Blocked URL check
 function checkBlocked(req, res, next) {
   const target = req.query.url;
-  if (!target) return res.status(400).send('Provide a ?url parameter');
+  if (!target) return res.status(400).send('Please provide a ?url parameter');
 
   if (blockedUrls.some(blocked => target.startsWith(blocked))) {
     return res.status(403).send('This URL is blocked.');
@@ -51,7 +50,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Authentication
+// Apply authentication
 app.use(auth);
 
 // Proxy endpoint
@@ -63,16 +62,6 @@ app.get('/proxy', checkBlocked, (req, res) => {
   });
 });
 
-// Link generator endpoint
-app.get('/links', (req, res) => {
-  const baseUrl = `http://${process.env.USERNAME}:${process.env.PASSWORD}@${req.headers.host}/proxy?url=`;
-  const exampleUrls = [
-    'https://example.com',
-    'https://google.com',
-    'https://github.com'
-  ];
-  const links = exampleUrls.map(u => baseUrl + encodeURIComponent(u));
-  res.json({ links });
-});
+// Optional: link generator endpoint removed since no example URLs are needed
 
 app.listen(PORT, () => console.log(`Private proxy running on port ${PORT}`));
